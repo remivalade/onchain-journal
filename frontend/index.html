@@ -46,7 +46,7 @@
     .emoji-btn:hover{transform:scale(1.25);}
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 text-white">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 text-white space-y-6">
   <div class="w-full max-w-6xl bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 mx-auto grid lg:grid-cols-2 gap-10">
 
     <!-- ▸▸ LEFT PANE -->
@@ -57,7 +57,7 @@
         <img src="pics/logo-oj-256.png" alt="On‑Chain Journal" class="w-16 h-16 md:w-20 md:h-20 shrink-0" />
         <div>
           <h1 class="text-4xl md:text-5xl font-bold">On‑Chain Journal</h1>
-          <p class="text-gray-400">Mint your thoughts & moods</p>
+          <p class="text-gray-400">Mint your thoughts & moods on BOB</p>
         </div>
       </header>
 
@@ -76,17 +76,17 @@
       <form id="mintForm" class="flex flex-col space-y-6 opacity-50 pointer-events-none">
         <!-- mood picker -->
         <div>
-          <label class="btn btn-primary">3. Select a Mood</label>
+          <label class="block text-lg mb-2">3. Select a Mood</label>
           <div id="emojiBox" class="flex flex-wrap gap-2 p-3 bg-gray-900/50 rounded-lg"></div>
           <input type="hidden" id="inpMood" />
         </div>
         <!-- text area -->
         <div>
-          <label for="inpText" class="btn btn-primary">4. Write Your Entry <span class="text-sm text-gray-400" id="charCount"></span></label>
-          <textarea id="inpText" rows="5" maxlength="400" placeholder="Dear journal, today ..." class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 text-lg text-gray-200"></textarea>
+          <label for="inpText" class="block text-lg mb-2">4. Write Your Entry <span class="text-sm text-gray-400" id="charCount"></span></label>
+          <textarea id="inpText" rows="5" maxlength="400" placeholder="What's on your mind?" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 text-lg text-gray-200"></textarea>
         </div>
         <!-- mint button -->
-        <label class="btn btn-primary">5. Mint your Journal NFT</label>
+        <label class="block text-lg mb-2">5. Mint your Journal NFT</label>
         <button id="btnMint" type="button" class="btn btn-primary">Mint</button>
       </form>
 
@@ -355,5 +355,13 @@
 
   function setStatus(msg){ statusBox.innerHTML=msg; }
   </script>
+  <!-- ▸▸ DISCLAIMER -->
+  <footer class="w-full max-w-6xl bg-gray-800 rounded-2xl shadow-2xl p-6 text-sm text-gray-400 text-center space-y-2"">
+    <p>⚠️ This project is <em>vibe‑coded</em> by <a href="https://x.com/remivalade" target="_blank" class="text-orange-400 hover:underline">remivalade</a>, who openly admits he has no clue about coding 😅. Always verify contracts before interacting, and feel free to mint directly from the explorer.</p>
+    <p>Collection on Element marketplace: <a href="https://element.market/collections/onchain-journal" target="_blank" class="text-orange-400 hover:underline">Buy some journal entries!</a></p>
+    <p>Contract: <a href="https://explorer.gobob.xyz/token/0xF1DFFad0Ad3710c99CfEff89dA8cB1b7B8Cb1C18?tab=read_write_contract" target="_blank" class="text-orange-400 hover:underline">0xF1D…C18 – read / write</a></p>
+    <p>Github: <a href="https://github.com/remivalade/onchain-journal" target="_blank" class="text-orange-400 hover:underline">Discover the project, front and contract</a></p>
+    <p>Find me on <a href="https://x.com/remivalade" target="_blank" class="text-orange-400 hover:underline">X</a> or <a href="https://www.linkedin.com/in/remivalade/" target="_blank" class="text-orange-400 hover:underline">LinkedIn</a>.</p>
+  </footer>
 </body>
 </html>
