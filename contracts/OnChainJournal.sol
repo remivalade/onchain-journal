@@ -32,7 +32,8 @@ contract OnChainJournal is ERC721 {
 
     function _escapeString(string memory _str) internal pure returns (string memory) {
         bytes memory strBytes = bytes(_str);
-        bytes memory result = new bytes(strBytes.length * 5);
+        // FIX: Increased allocation from 5 to 6 to prevent buffer overflow from '&quot;' or '&apos;'
+        bytes memory result = new bytes(strBytes.length * 6);
         uint resultIndex = 0;
         for (uint i = 0; i < strBytes.length; i++) {
             if (strBytes[i] == '&') {
@@ -58,6 +59,14 @@ contract OnChainJournal is ERC721 {
                 result[resultIndex++] = 'o';
                 result[resultIndex++] = 't';
                 result[resultIndex++] = ';';
+            // FIX: Added escaping for single quotes for robustness
+            } else if (strBytes[i] == '\'') {
+                result[resultIndex++] = '&';
+                result[resultIndex++] = 'a';
+                result[resultIndex++] = 'p';
+                result[resultIndex++] = 'o';
+                result[resultIndex++] = 's';
+                result[resultIndex++] = ';';
             } else {
                 result[resultIndex++] = strBytes[i];
             }
@@ -70,6 +79,10 @@ contract OnChainJournal is ERC721 {
     }
 
     function mintEntry(string memory _text, string memory _mood) public {
+        // FIX: Added input validation to prevent Gas Griefing / DoS attacks
+        require(bytes(_text).length <= 400, "OnChainJournal: Text exceeds 400 bytes.");
+        require(bytes(_mood).length <= 64, "OnChainJournal: Mood exceeds 64 bytes.");
+
         uint256 newItemId = _tokenIdCounter.current();
         _safeMint(msg.sender, newItemId);
         journalEntries[newItemId] = JournalEntry({
@@ -122,13 +135,13 @@ contract OnChainJournal is ERC721 {
                     '</linearGradient>',
                 '</defs>',
                 
-                '<!-- The outer rectangle that acts as the gradient border -->',
+                '',
                 '<rect width="100%" height="100%" rx="20" ry="20" fill="url(#grad)"/>',
                 
-                '<!-- The inner, main rectangle with a solid color -->',
+                '',
                 '<rect x="8" y="8" width="484" height="484" rx="15" ry="15" fill="#f25d00"/>',
 
-                '<!-- The rest of the content is drawn on top -->',
+                '',
                 '<text x="450" y="90" font-family="sans-serif" font-size="70" text-anchor="end" fill="white">', escapedMood, '</text>',
                 
                 '<text x="50" y="75" font-family="monospace" font-size="20" fill="white" fill-opacity="0.8">Timestamp: ', entry.timestamp.toString(), '</text>',
