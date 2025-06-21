@@ -110,7 +110,7 @@
   <!-- ▸▸ SCRIPT -->
   <script>
   /* ------------ CONFIG ------------ */
-  const CONTRACT_ADDRESS = "0xF1DFFad0Ad3710c99CfEff89dA8cB1b7B8Cb1C18";
+  const CONTRACT_ADDRESS = "0x3fCD67DF58Ecc63d301048A602bDaD1b1fb94a4B";
   const CONTRACT_ABI = [
     "function mintEntry(string _text,string _mood) public returns(uint256)",
     "function tokenURI(uint256) view returns(string)",
@@ -269,7 +269,7 @@
   function initContract(){ contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer); }
 
   /* ------------ SVG preview helpers ------------ */
-  const escapeHTML = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");
+  const escapeHTML = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g, "&#39;");
   function generateSVG(text,mood){
     const ts=Math.floor(Date.now()/1000);
     return `<svg width='500' height='500' xmlns='http://www.w3.org/2000/svg'>
@@ -359,7 +359,7 @@
   <footer class="w-full max-w-6xl bg-gray-800 rounded-2xl shadow-2xl p-6 text-sm text-gray-400 text-center space-y-2"">
     <p>⚠️ This project is <em>vibe‑coded</em> by <a href="https://x.com/remivalade" target="_blank" class="text-orange-400 hover:underline">remivalade</a>, who openly admits he has no clue about coding 😅. Always verify contracts before interacting, and feel free to mint directly from the explorer.</p>
     <p>Collection on Element marketplace: <a href="https://element.market/collections/onchain-journal" target="_blank" class="text-orange-400 hover:underline">Buy some journal entries!</a></p>
-    <p>Contract: <a href="https://explorer.gobob.xyz/token/0xF1DFFad0Ad3710c99CfEff89dA8cB1b7B8Cb1C18?tab=read_write_contract" target="_blank" class="text-orange-400 hover:underline">0xF1D…C18 – read / write</a></p>
+    <p>Contract: <a href="https://explorer.gobob.xyz/token/0x3fCD67DF58Ecc63d301048A602bDaD1b1fb94a4B?tab=read_write_contract" target="_blank" class="text-orange-400 hover:underline">0xF1D…C18 – read / write</a></p>
     <p>Github: <a href="https://github.com/remivalade/onchain-journal" target="_blank" class="text-orange-400 hover:underline">Discover the project, front and contract</a></p>
     <p>Find me on <a href="https://x.com/remivalade" target="_blank" class="text-orange-400 hover:underline">X</a> or <a href="https://www.linkedin.com/in/remivalade/" target="_blank" class="text-orange-400 hover:underline">LinkedIn</a>.</p>
   </footer>
