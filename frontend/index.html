@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>On‑Chain Journal Minter</title>
+
+  <!-- external libs -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:#111827}
+    .font-mono{font-family:'Roboto Mono',monospace}
+    .btn{@apply w-full px-6 py-3 text-lg font-bold text-white rounded-xl transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed text-left;cursor:pointer;}
+    .btn-primary{@apply bg-orange-600 hover:bg-orange-700}
+    .btn-success{@apply bg-emerald-600}
+    .emoji-btn{@apply text-3xl p-2 rounded-full hover:bg-gray-600 transition-colors;transition:transform 0.1s ease-in-out;}
+    .emoji-btn.selected{@apply bg-orange-600;}
+    #preview svg{width:100%;height:100%}
+    /* simple tooltip */
+    .emoji-btn[data-tip]{position:relative;}
+    .emoji-btn[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;
+  bottom:120%;
+  left:50%;
+  transform:translateX(-50%);
+  background:#222;
+  padding:2px 6px;
+  border-radius:4px;
+  font-size:12px;
+  white-space:nowrap;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0s;
+}
+    .emoji-btn[data-tip]:hover::after{opacity:1;}
+    .emoji-btn:hover{transform:scale(1.25);}
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-white">
+  <div class="w-full max-w-6xl bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 mx-auto grid lg:grid-cols-2 gap-10">
+
+    <!-- ▸▸ LEFT PANE -->
+    <div class="flex flex-col space-y-6">
+      <!-- header / branding -->
+      <header class="flex items-center gap-4">
+        <!-- Recommended: 256×256 transparent PNG stored at /pics/logo-oj-256.png -->
+        <img src="pics/logo-oj-256.png" alt="On‑Chain Journal" class="w-16 h-16 md:w-20 md:h-20 shrink-0" />
+        <div>
+          <h1 class="text-4xl md:text-5xl font-bold">On‑Chain Journal</h1>
+          <p class="text-gray-400">Mint your thoughts & moods</p>
+        </div>
+      </header>
+
+      <!-- step 1: connect / disconnect -->
+      <section id="connectArea">
+        <button id="btnConnect" class="btn btn-primary">1. Connect Wallet</button>
+        <p id="lblAccount" class="text-green-400 font-mono text-sm mt-2"></p>
+      </section>
+
+      <!-- step 2: network status (always visible) -->
+      <section id="netArea">
+        <button id="btnSwitch" class="btn btn-primary">2. Switch to BOB Network</button>
+      </section>
+
+      <!-- step 3‑5 form -->
+      <form id="mintForm" class="flex flex-col space-y-6 opacity-50 pointer-events-none">
+        <!-- mood picker -->
+        <div>
+          <label class="btn btn-primary">3. Select a Mood</label>
+          <div id="emojiBox" class="flex flex-wrap gap-2 p-3 bg-gray-900/50 rounded-lg"></div>
+          <input type="hidden" id="inpMood" />
+        </div>
+        <!-- text area -->
+        <div>
+          <label for="inpText" class="btn btn-primary">4. Write Your Entry <span class="text-sm text-gray-400" id="charCount"></span></label>
+          <textarea id="inpText" rows="5" maxlength="400" placeholder="Dear journal, today ..." class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 text-lg text-gray-200"></textarea>
+        </div>
+        <!-- mint button -->
+        <label class="btn btn-primary">5. Mint your Journal NFT</label>
+        <button id="btnMint" type="button" class="btn btn-primary">Mint</button>
+      </form>
+
+      <!-- status / tx hash -->
+      <div id="status" class="p-4 bg-gray-900/50 rounded-lg font-mono text-sm h-24 flex items-center justify-center">Connect your wallet to begin…</div>
+
+      <!-- local history -->
+      <div id="history" class="hidden">
+        <h3 class="text-lg font-semibold mb-2">Your last mints</h3>
+        <ul id="historyList" class="list-disc list-inside space-y-1 text-orange-400"></ul>
+      </div>
+    </div>
+
+    <!-- ▸▸ RIGHT PANE: live preview -->
+    <div class="flex flex-col items-center">
+      <h2 class="text-2xl font-bold mb-4">Live NFT Preview</h2>
+      <div id="preview" class="w-full max-w-[500px] aspect-square bg-gray-700 border-2 border-gray-600 rounded-lg overflow-hidden"></div>
+    </div>
+  </div>
+
+  <!-- ▸▸ SCRIPT -->
+  <script>
+  /* ------------ CONFIG ------------ */
+  const CONTRACT_ADDRESS = "0xF1DFFad0Ad3710c99CfEff89dA8cB1b7B8Cb1C18";
+  const CONTRACT_ABI = [
+    "function mintEntry(string _text,string _mood) public returns(uint256)",
+    "function tokenURI(uint256) view returns(string)",
+    "event Transfer(address indexed from,address indexed to,uint256 indexed tokenId)"
+  ];
+  const BOB = {
+    chainId: "0xed88", // 60808
+    chainName: "BOB",
+    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+    rpcUrls: ["https://rpc.gobob.xyz/"],
+    blockExplorerUrls: ["https://explorer.gobob.xyz"]
+  };
+  const EMOJIS = [
+    {e:"😊", t:"Happy"},
+    {e:"😂", t:"Laughing"},
+    {e:"😍", t:"Love"},
+    {e:"🤔", t:"Thinking"},
+    {e:"😢", t:"Sad"},
+    {e:"😡", t:"Angry"},
+    {e:"🚀", t:"To the moon"},
+    {e:"💡", t:"Idea"},
+    {e:"🔥", t:"Fire"},
+    {e:"🙏", t:"Grateful"},
+    {e:"💯", t:"100%"},
+    {e:"👀", t:"Watching"},
+    {e:"😅", t:"Sweat"},
+    {e:"😏", t:"Smirk"}
+  ];
+  const MAX_CHARS = 400;
+  const HISTORY_KEY = "oj_last_mints";
+
+  /* ------------ STATE ------------ */
+  let ethProv, provider, signer, contract, account, wcProvider;
+
+  /* ------------ UI ------------ */
+  const btnConnect = document.getElementById("btnConnect");
+  const btnSwitch  = document.getElementById("btnSwitch");
+  const btnMint    = document.getElementById("btnMint");
+  const lblAccount = document.getElementById("lblAccount");
+  const netArea    = document.getElementById("netArea");
+  const mintForm   = document.getElementById("mintForm");
+  const emojiBox   = document.getElementById("emojiBox");
+  const inpMood    = document.getElementById("inpMood");
+  const inpText    = document.getElementById("inpText");
+  const charCount  = document.getElementById("charCount");
+  const statusBox  = document.getElementById("status");
+  const preview    = document.getElementById("preview");
+  const historyWrap= document.getElementById("history");
+  const historyList= document.getElementById("historyList");
+
+  window.addEventListener("DOMContentLoaded", () => {
+    btnSwitch.disabled = true;
+    renderEmojiButtons();
+    loadHistory();
+    updatePreview();
+    btnConnect.addEventListener("click", toggleConnection);
+    btnSwitch.addEventListener("click", switchToBob);
+    btnMint.addEventListener("click", mintNFT);
+    inpText.addEventListener("input", () => {
+      charCount.textContent = `${inpText.value.length}/${MAX_CHARS}`;
+      updatePreview();
+    });
+  });
+
+  /* ------------ PROVIDER DISCOVERY ------------ */
+  async function discoverInjectedProvider(timeout = 600){
+    let injected;
+    function setInjected(){ if(window.ethereum) injected=window.ethereum; }
+    if(window.ethereum) injected=window.ethereum;
+    window.addEventListener("ethereum#initialized", setInjected, {once:true});
+    await new Promise(r=>setTimeout(r,timeout));
+    window.removeEventListener("ethereum#initialized", setInjected);
+    if(injected) return injected;
+    return new Promise(res=>{
+      const found=[];
+      const h=evt=>found.push(evt.detail.provider);
+      window.addEventListener("eip6963:announceProvider",h);
+      window.dispatchEvent(new Event("eip6963:requestProvider"));
+      setTimeout(()=>{
+        window.removeEventListener("eip6963:announceProvider",h);
+        res(found.find(p=>p.isRabby)||found[0]);
+      },timeout);
+    });
+  }
+
+  /* ------------ WALLET FLOW ------------ */
+  async function toggleConnection(){
+    if(account){ // disconnect flow
+      try{
+        if(wcProvider && wcProvider.disconnect){ await wcProvider.disconnect(); }
+      }catch(e){}
+      location.reload();
+      return;
+    }
+    // connect flow
+    try{
+      ethProv = await discoverInjectedProvider();
+      if(ethProv){
+        await ethProv.request({method:"eth_requestAccounts"});
+        provider = new ethers.BrowserProvider(ethProv);
+        signer   = await provider.getSigner();
+        account  = await signer.getAddress();
+        ethProv.on?.("accountsChanged",()=>location.reload());
+        ethProv.on?.("chainChanged", ()=>location.reload());
+        lblAccount.textContent=`Connected: ${account.slice(0,6)}…${account.slice(-4)}`;
+        btnConnect.textContent = "1. Disconnect Wallet";
+        await ensureBob();
+      }else{
+        await connectViaWalletConnect();
+      }
+    }catch(err){ setStatus(err.message||err); }
+  }
+
+  async function connectViaWalletConnect(){
+    setStatus("No injected wallet – showing WalletConnect QR…");
+    const WC = (window.WalletConnectProvider && (window.WalletConnectProvider.default||window.WalletConnectProvider));
+    if(!WC){ setStatus("WalletConnect lib missing"); return; }
+    wcProvider = new WC({ rpc:{"60808":BOB.rpcUrls[0]} });
+    await wcProvider.enable();
+    ethProv  = wcProvider;
+    provider = new ethers.BrowserProvider(wcProvider);
+    signer   = await provider.getSigner();
+    account  = await signer.getAddress();
+    lblAccount.textContent=`Connected (WC): ${account.slice(0,6)}…${account.slice(-4)}`;
+    btnConnect.textContent="1. Disconnect Wallet";
+    await ensureBob();
+  }
+
+  async function ensureBob(){
+    const {chainId} = await provider.getNetwork();
+    if(Number(chainId)!==parseInt(BOB.chainId,16)){
+      setStatus("Wrong network – please switch");
+      btnSwitch.disabled=false;
+      btnSwitch.classList.replace("btn-success","btn-primary");
+      btnSwitch.textContent="2. Switch to BOB Network";
+      mintForm.classList.add("opacity-50","pointer-events-none");
+    }else{
+      setStatus("Ready to mint on BOB");
+      btnSwitch.disabled=true;
+      btnSwitch.classList.replace("btn-primary","btn-success");
+      btnSwitch.textContent="2. BOB Network ✔";
+      mintForm.classList.remove("opacity-50","pointer-events-none");
+      initContract();
+    }
+  }
+
+  async function switchToBob(){
+    try{
+      await ethProv.request({method:"wallet_switchEthereumChain",params:[{chainId:BOB.chainId}]});
+    }catch(err){
+      if(err.code===4902){ await ethProv.request({method:"wallet_addEthereumChain",params:[BOB]}); }
+      else { setStatus(err.message||err); }
+    }
+  }
+
+  function initContract(){ contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer); }
+
+  /* ------------ SVG preview helpers ------------ */
+  const escapeHTML = s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");
+  function generateSVG(text,mood){
+    const ts=Math.floor(Date.now()/1000);
+    return `<svg width='500' height='500' xmlns='http://www.w3.org/2000/svg'>
+  <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#f25d00'/><stop offset='100%' stop-color='#c026d3'/></linearGradient></defs>
+  <rect width='100%' height='100%' rx='20' fill='url(#g)'/>
+  <rect x='8' y='8' width='484' height='484' rx='15' fill='#f25d00'/>
+  <text x='450' y='90' font-size='70' text-anchor='end' fill='white'>${escapeHTML(mood)}</text>
+  <text x='50' y='75' font-family='monospace' font-size='20' fill='white' opacity='.8'>Timestamp: ${ts}</text>
+  <foreignObject x='50' y='120' width='400' height='280'>
+    <div xmlns='http://www.w3.org/1999/xhtml' style='color:white;font-size:22px;line-height:1.5;word-wrap:break-word;'>${escapeHTML(text)}</div>
+  </foreignObject>
+  <text x='50' y='450' font-family='monospace' font-size='16' fill='white' opacity='.5'>On‑Chain Journal</text>
+</svg>`;
+  }
+  function updatePreview(){ preview.innerHTML = generateSVG(inpText.value, inpMood.value); }
+
+  /* ------------ Mint ------------ */
+  async function mintNFT(){
+    if(!contract){ setStatus("Connect first"); return; }
+    const text=inpText.value.trim();
+    const mood=inpMood.value;
+    if(!text){ setStatus("Text empty"); return; }
+    if(!mood){ setStatus("Choose mood"); return; }
+    try{
+      btnMint.disabled=true; btnMint.textContent="Minting…";
+      setStatus("Waiting wallet confirmation…");
+      const tx=await contract.mintEntry(text,mood);
+      setStatus("Tx sent – waiting for confirmation…");
+      const receipt=await tx.wait();
+      const sig=ethers.id("Transfer(address,address,uint256)");
+      const log=receipt.logs.find(l=>l.topics&&l.topics[0]===sig);
+      const tokenId=log?BigInt(log.topics[3]).toString():undefined;
+      const txLink=`${BOB.blockExplorerUrls[0]}/tx/${receipt.hash}`;
+      setStatus(`Success! <a href='${txLink}' target='_blank' class='text-orange-400 underline'>View Tx</a>`);
+      storeHistory(tokenId, receipt.hash);
+      inpText.value=""; updatePreview(); charCount.textContent=`0/${MAX_CHARS}`;
+    }catch(err){ setStatus(err.data?.message||err.message||err); }
+    finally{ btnMint.disabled=false; btnMint.textContent="5. Mint your Journal NFT"; }
+  }
+
+  /* ------------ History ------------ */
+  function storeHistory(tokenId,txHash){
+    if(!tokenId) return;
+    const list=JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");
+    list.unshift({tokenId,txHash});
+    localStorage.setItem(HISTORY_KEY,JSON.stringify(list.slice(0,5)));
+    loadHistory();
+  }
+  function loadHistory(){
+    const list=JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");
+    historyList.innerHTML="";
+    list.forEach(({tokenId})=>{
+      const li=document.createElement("li");
+      const a=document.createElement("a");
+      a.href=`${BOB.blockExplorerUrls[0]}/token/${CONTRACT_ADDRESS}/instance/${tokenId}`;
+      a.textContent=`Token #${tokenId}`;
+      a.target="_blank";
+      a.className="hover:underline";
+      li.appendChild(a);
+      historyList.appendChild(li);
+    });
+    historyWrap.classList.toggle("hidden", list.length===0);
+  }
+
+  /* ------------ Emoji buttons ------------ */
+  function renderEmojiButtons(){
+    EMOJIS.forEach((obj,idx)=>{
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.className="emoji-btn";
+      btn.textContent=obj.e;
+      btn.setAttribute('data-tip', obj.t);
+      btn.onclick=()=>{
+        document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        inpMood.value=obj.e; updatePreview();
+      };
+      if(idx===0){ btn.classList.add('selected'); inpMood.value=obj.e; }
+      emojiBox.appendChild(btn);
+    });
+    charCount.textContent=`0/${MAX_CHARS}`;
+  }
+
+  function setStatus(msg){ statusBox.innerHTML=msg; }
+  </script>
+</body>
+</html>
