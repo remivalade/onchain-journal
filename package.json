@@ -14,5 +14,9 @@
 	},
 	"scripts": {
 		"prepare": "husky install"
+	},
+	"dependencies": {
+		"@types/react": "^19.1.8",
+		"react": "^19.1.0"
 	}
 }

@@ -50,15 +50,16 @@ export const metadata: Metadata = {
 };
 
 /* ---------------- 3.  ROOT LAYOUT ------------ */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   // 1. Get the wagmi initial state from the cookies
+  const headersList = await headers();
   const initialState = cookieToInitialState(
     wagmiConfig,
-    headers().get('cookie'),
+    headersList.get('cookie'),
   );
 
   return (
