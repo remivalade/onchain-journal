@@ -1,84 +1,60 @@
-# 📝 OnChainJournal
+# On-Chain Journal
 
-**OnChainJournal** is an Ethereum smart contract that allows users to write immutable, timestamped journal entries directly on the blockchain. Each entry is recorded as an event, making it verifiable, permanent, and gas-efficient.
+This project is a simple web application that allows users to mint their thoughts and moods as NFTs on the BOB (Build on Bitcoin) L2 network.
 
-## ✨ Features
+The frontend is built with Next.js and uses `wagmi` for wallet interactions. The smart contract `OnChainJournal.sol` is an ERC721 token that generates an SVG for each minted NFT.
 
-- **Fully On-Chain Entries**  
-  Users can submit journal messages that are logged immutably via blockchain events.
+## Getting Started
 
-- **Gas-Efficient Design**  
-  Entries are emitted as events instead of being stored in state, minimizing gas costs while preserving accessibility.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-- **Owner-Managed Metadata**  
-  The contract owner can set and update the journal's `name` and `description`.
+### Prerequisites
 
-- **Event-Based Logging**  
-  All entries are broadcast using the `NewEntry` event, including:
-  - Sender address
-  - Timestamp
-  - Message content
+Make sure you have the following installed on your macOS system:
 
-## 🛠 Functions
+*   [Node.js](https://nodejs.org/) (v18 or later recommended)
+*   [npm](https://www.npmjs.com/) (usually comes with Node.js)
+*   A web browser with a wallet extension, such as [MetaMask](https://metamask.io/).
 
-### Public Functions
+### Installation
 
-- `write(string memory _message)`  
-  Submit a new journal entry. Anyone can call this.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/bob-collective/onchain-journal.git
+    cd onchain-journal
+    ```
 
-- `name()`  
-  Returns the journal name.
+2.  **Navigate to the web directory:**
+    The frontend application is located in the `web` directory.
+    ```bash
+    cd web
+    ```
 
-- `description()`  
-  Returns the journal description.
+3.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-### Owner-Only Functions
+4.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-- `setName(string memory _name)`  
-  Updates the journal name.
+5.  **Open the application:**
+    Open your web browser and navigate to `http://localhost:3000`.
 
-- `setDescription(string memory _description)`  
-  Updates the journal description.
+## Wallet Setup
 
-- `transferOwnership(address newOwner)`  
-  Transfers contract ownership (inherited from `Ownable`).
+To interact with the application, you need to connect your wallet and switch to the BOB Mainnet.
 
-## 🔍 Events
+### Add BOB Mainnet to MetaMask
 
-```solidity
-event NewEntry(address indexed from, uint256 indexed timestamp, string message);
-```
+If you don't have the BOB network configured in your MetaMask wallet, you can add it using the following details:
 
-Use this event to index journal entries off-chain using tools like **The Graph**, **Etherscan**, or your custom UI.
+*   **Network Name:** BOB Mainnet
+*   **RPC URL:** `https://rpc.gobob.xyz`
+*   **Chain ID:** 60808
+*   **Currency Symbol:** ETH
+*   **Block Explorer URL:** `https://explorer.gobob.xyz`
 
-## 📦 Deployment
-
-1. Deploy `OnChainJournal.sol` to any EVM-compatible chain.
-2. Initialize the journal by setting the `name` and `description` via the owner.
-3. Let users start submitting entries via the `write()` function.
-
-## ⚠️ Notes
-
-- All messages are public and cannot be deleted or modified once submitted.
-- Avoid including sensitive or personally identifiable information.
-- Ideal for anonymous or pseudonymous public journaling, timestamped records, or writing history on-chain.
-
-## 🧪 Example
-
-```solidity
-write("Today I deployed my first smart contract. Feels great!");
-```
-
-This will emit:
-
-```
-NewEntry(
-  from: 0xYourAddress,
-  timestamp: 1718918400,
-  message: "Today I deployed my first smart contract. Feels great!"
-)
-```
-
----
-
-Built with ❤️ for permanence and decentralization.
+Once the network is added, switch to it, and you should be able to connect your wallet and mint your journal entries.
