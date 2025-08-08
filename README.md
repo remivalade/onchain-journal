@@ -2,7 +2,10 @@
 
 This project is a simple web application that allows users to mint their thoughts and moods as NFTs on the BOB (Build on Bitcoin) L2 network.
 
-The frontend is built with Next.js and uses `wagmi` for wallet interactions. The smart contract `OnChainJournal.sol` is an ERC721 token that generates an SVG for each minted NFT.
+This is a monorepo containing the smart contract and the frontend application.
+
+- `OnChainJournal.sol`: The Solidity smart contract for the ERC721 token.
+- `web`: The Next.js frontend application.
 
 ## Getting Started
 
@@ -10,10 +13,10 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-Make sure you have the following installed on your macOS system:
+Make sure you have the following installed on your system:
 
 *   [Node.js](https://nodejs.org/) (v18 or later recommended)
-*   [npm](https://www.npmjs.com/) (usually comes with Node.js)
+*   [pnpm](https://pnpm.io/installation)
 *   A web browser with a wallet extension, such as [MetaMask](https://metamask.io/).
 
 ### Installation
@@ -24,23 +27,19 @@ Make sure you have the following installed on your macOS system:
     cd onchain-journal
     ```
 
-2.  **Navigate to the web directory:**
-    The frontend application is located in the `web` directory.
+2.  **Install dependencies:**
+    This command will install dependencies for all the packages in the monorepo.
     ```bash
-    cd web
+    pnpm install
     ```
 
-3.  **Install dependencies:**
+3.  **Run the development server:**
+    This command will start the Next.js development server.
     ```bash
-    npm install
+    pnpm --filter web dev
     ```
 
-4.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-
-5.  **Open the application:**
+4.  **Open the application:**
     Open your web browser and navigate to `http://localhost:3000`.
 
 ## Wallet Setup
