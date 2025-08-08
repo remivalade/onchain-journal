@@ -2,9 +2,10 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { useAccount, useConnect, useDisconnect, useSwitchChain, useWriteContract, useReadContract } from 'wagmi';
+import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { bob } from '@/lib/chains';
 import { contractAddress, contractAbi } from '@/lib/contract';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const EMOJIS = [
   { e: '😊', t: 'Happy' },
@@ -29,9 +30,6 @@ export default function JournalApp() {
 
   // Wagmi hooks for wallet connection and network switching
   const { address, isConnected, chainId } = useAccount();
-  const { connectors, connect } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { switchChain } = useSwitchChain();
 
   // Check if the user is on the correct network (BOB)
   const onBob = chainId === bob.id;
@@ -78,46 +76,6 @@ export default function JournalApp() {
     });
   };
 
-  // Function to render the wallet connection button or connected state
-  const renderConnectionButton = () => {
-    if (isConnected) {
-      return (
-        <div className="w-full bg-gray-900/50 rounded-lg p-3 flex items-center justify-between">
-          <span className="font-mono text-lg">
-            {address?.slice(0, 6)}...{address?.slice(-4)}
-          </span>
-          <button onClick={() => disconnect()} className="btn btn-secondary">
-            Disconnect
-          </button>
-        </div>
-      );
-    }
-
-    // Assuming MetaMask is the primary connector
-    const connector = connectors[0];
-    return (
-      <button
-        key={connector.uid}
-        onClick={() => connect({ connector })}
-        className="btn btn-primary w-full"
-      >
-        1. Connect Wallet
-      </button>
-    );
-  };
-
-  // Function to render the switch network button if needed
-  const renderSwitchNetworkButton = () => {
-    if (isConnected && !onBob) {
-      return (
-        <button onClick={() => switchChain({ chainId: bob.id })} className="btn btn-primary w-full">
-          2. Switch to BOB Network
-        </button>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="w-full max-w-6xl bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 mx-auto grid lg:grid-cols-2 gap-10 text-white">
       {/* ▸ Left pane */}
@@ -137,14 +95,15 @@ export default function JournalApp() {
           </div>
         </header>
 
-        {/* step 1: connect */}
-        <section>{renderConnectionButton()}</section>
-
-        {/* step 2: switch network */}
-        {renderSwitchNetworkButton() && <section>{renderSwitchNetworkButton()}</section>}
+        {/* Connect Button */}
+        <div className="flex justify-center">
+          <ConnectButton />
+        </div>
 
         <form
-          className={`flex flex-col space-y-6 ${!isFormEnabled && 'opacity-50 pointer-events-none'}`}
+          className={`flex flex-col space-y-6 ${
+            !isFormEnabled && 'opacity-50 pointer-events-none'
+          }`}
         >
           <div>
             <label className="block text-lg mb-2">3. Select a Mood</label>
