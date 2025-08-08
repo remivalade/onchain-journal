@@ -183,7 +183,10 @@ export default function JournalApp() {
         <div className="w-full max-w-[500px] aspect-square bg-gray-700 border-2 border-gray-600 rounded-lg overflow-hidden flex items-center justify-center">
           {isPreviewLoading && isFormEnabled && <div>Generating preview...</div>}
           {svg && isFormEnabled ? (
-            <img src={`data:image/svg+xml;base64,${btoa(svg)}`} alt="NFT Preview" />
+            <img
+              src={`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`}
+              alt="NFT Preview"
+            />
           ) : (
             <div className="text-center text-gray-400">
               <p>Connect your wallet and write an entry to see the preview.</p>
