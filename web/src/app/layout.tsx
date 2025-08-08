@@ -2,9 +2,6 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
-import { headers } from 'next/headers';
-import { wagmiConfig } from '@/lib/wagmi';
-import { cookieToInitialState } from 'wagmi';
 import { Providers } from './providers';
 
 /* ---------------- 1.  FONTS ------------------ */
@@ -50,23 +47,15 @@ export const metadata: Metadata = {
 };
 
 /* ---------------- 3.  ROOT LAYOUT ------------ */
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Get the wagmi initial state from the cookies
-  const headersList = await headers();
-  const initialState = cookieToInitialState(
-    wagmiConfig,
-    headersList.get('cookie'),
-  );
-
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        {/* 2. Pass the initial state to the client-side Providers */}
-        <Providers initialState={initialState}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
