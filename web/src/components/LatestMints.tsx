@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePublicClient } from 'wagmi';
-import { contractAddress } from '@/lib/contract';
+import { contractAddress, contractAbi } from '@/lib/contract';
 import { bob } from '@/lib/chains';
 import { parseAbiItem } from 'viem';
 
@@ -50,6 +50,38 @@ export default function LatestMints() {
 
         // Get the latest 5 mints
         const latestLogs = logs.slice(-5).reverse();
+
+        // For each log, fetch the token URI and parse the metadata
+        const mintsPromises = latestLogs.map(async (log) => {
+          const tokenId = log.args.tokenId;
+          if (tokenId === undefined) return null;
+
+          try {
+            const tokenUriData = await publicClient.readContract({
+              address: contractAddress,
+              abi: contractAbi,
+              functionName: 'tokenURI',
+              args: [tokenId],
+            });
+
+            // The tokenURI is a base64 encoded JSON string, so we need to decode it
+            const tokenUriJson = JSON.parse(atob(tokenUriData.split(',')[1]));
+
+            return {
+              minter: log.args.to!,
+              tokenId: Number(tokenId),
+              imageUrl: tokenUriJson.image,
+            };
+          } catch (error) {
+            console.error(`Error fetching metadata for token #${tokenId}:`, error);
+            return null;
+          }
+        });
+
+        // Wait for all promises to resolve and filter out any nulls (errors)
+        const mintsData = (await Promise.all(mintsPromises)).filter(
+          (mint): mint is MintEvent => mint !== null,
+        );
 
         setMints(mintsData);
       } catch (error) {
