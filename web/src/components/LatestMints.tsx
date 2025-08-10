@@ -14,11 +14,6 @@ interface MintEvent {
   imageUrl: string;
 }
 
-// Function to truncate an address for display
-const truncateAddress = (address: string) => {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-};
-
 export default function LatestMints() {
   const [mints, setMints] = useState<MintEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
