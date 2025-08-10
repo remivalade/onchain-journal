@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePublicClient } from 'wagmi';
-import { contractAddress, contractAbi } from '@/lib/contract';
+import { contractAddress } from '@/lib/contract';
 import { bob } from '@/lib/chains';
 import { parseAbiItem } from 'viem';
 
@@ -50,36 +50,6 @@ export default function LatestMints() {
 
         // Get the latest 5 mints
         const latestLogs = logs.slice(-5).reverse();
-
-        const mintsDataPromises = latestLogs.map(async (log) => {
-            const { to: minter, tokenId } = log.args;
-
-            if (tokenId === undefined) {
-              return null;
-            }
-
-            // Fetch the tokenURI to get the image
-            const tokenURI = await publicClient.readContract({
-                address: contractAddress,
-                abi: contractAbi,
-                functionName: 'tokenURI',
-                args: [tokenId],
-            });
-
-            // The tokenURI is a base64 encoded JSON string, so we need to decode it
-            const json = atob(tokenURI.substring(29)); // Remove "data:application/json;base64,"
-            const metadata = JSON.parse(json);
-            const imageUrl = metadata.image;
-
-            return {
-              minter: minter as `0x${string}`,
-              tokenId: Number(tokenId),
-              imageUrl: imageUrl,
-            };
-        });
-
-        const settledMintsData = await Promise.all(mintsDataPromises);
-        const mintsData = settledMintsData.filter((mint) => mint !== null) as MintEvent[];
 
         setMints(mintsData);
       } catch (error) {
