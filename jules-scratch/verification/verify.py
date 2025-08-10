@@ -4,33 +4,18 @@ def run():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        try:
-            page.goto("http://localhost:3000", timeout=60000)
+        page.goto("http://localhost:3000")
 
-            # Wait for the component to be visible
-            expect(page.locator('.latest-mints-container')).to_be_visible(timeout=30000)
+        # Wait for the main heading to be visible
+        expect(page.get_by_role("heading", name="On-Chain Journal")).to_be_visible()
 
-            page.screenshot(path="jules-scratch/verification/initial_state.png")
+        # Scroll to the bottom of the page
+        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
 
-            # Click the button
-            button = page.locator('text="discover the latest mints"')
-            expect(button).to_be_visible()
-            button.click()
+        # Wait for the "Latest Mints" heading to be visible
+        expect(page.get_by_role("heading", name="Latest Mints")).to_be_visible()
 
-            # Wait for the gallery to be visible
-            expect(page.locator('.latest-mints-gallery')).to_be_visible()
-
-            page.screenshot(path="jules-scratch/verification/open_state.png")
-
-            # Hover over the first mint item
-            mint_item = page.locator('.mint-item').first
-            mint_item.hover()
-
-            # Wait for the transition to complete
-            page.wait_for_timeout(500)
-
-            page.screenshot(path="jules-scratch/verification/hover_state.png")
-        finally:
-            browser.close()
+        page.screenshot(path="jules-scratch/verification/verification.png")
+        browser.close()
 
 run()

@@ -20,7 +20,6 @@ const truncateAddress = (address: string) => {
 };
 
 export default function LatestMints() {
-  const [isOpen, setIsOpen] = useState(false);
   const [mints, setMints] = useState<MintEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -100,42 +99,31 @@ export default function LatestMints() {
   }
 
   return (
-    <div className={`latest-mints-container ${isOpen ? 'open' : ''}`}>
-      <div className="latest-mints-header">
-        {mints.length > 0 && (
-          <p>
-            {truncateAddress(mints[0].minter)} has minted token #{mints[0].tokenId}
-          </p>
+    <div className="w-full mt-6">
+      <h2 className="text-2xl font-bold text-center mb-4">Latest Mints</h2>
+      <div className="flex justify-center gap-4 p-4 rounded-lg">
+        {isLoading ? (
+          <p>Loading latest mints...</p>
+        ) : (
+          mints.map((mint) => (
+            <a
+              key={mint.tokenId}
+              href={`${bob.blockExplorers.default.url}/nft/${contractAddress}/${mint.tokenId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-lg transition-transform hover:scale-110"
+            >
+              <Image
+                src={mint.imageUrl}
+                alt={`Token #${mint.tokenId}`}
+                width={128}
+                height={128}
+                className="rounded-lg"
+              />
+            </a>
+          ))
         )}
-        <button onClick={() => setIsOpen(!isOpen)} className="toggle-button">
-          {isOpen ? 'close' : 'discover the latest mints'}
-        </button>
       </div>
-      {isOpen && (
-        <div className="latest-mints-gallery">
-          {isLoading ? (
-            <p>Loading...</p>
-          ) : (
-            mints.map((mint) => (
-              <a
-                key={mint.tokenId}
-                href={`${bob.blockExplorers.default.url}/nft/${contractAddress}/${mint.tokenId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mint-item"
-              >
-                <Image
-                  src={mint.imageUrl}
-                  alt={`Token #${mint.tokenId}`}
-                  width={100}
-                  height={100}
-                  className="mint-image"
-                />
-              </a>
-            ))
-          )}
-        </div>
-      )}
     </div>
   );
 }
