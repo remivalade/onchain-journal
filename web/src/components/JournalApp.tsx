@@ -198,11 +198,13 @@ export default function JournalApp() {
         <h2 className="text-2xl font-bold mb-4">Live NFT Preview</h2>
         <div className="w-full max-w-[500px] aspect-square bg-gray-700 border-2 border-gray-600 rounded-lg overflow-hidden flex items-center justify-center">
           {isFormEnabled ? (
-            <img
+            <Image
               src={`data:image/svg+xml;base64,${btoa(
                 unescape(encodeURIComponent(generateSVG(text, mood))),
               )}`}
               alt="NFT Preview"
+              width={500}
+              height={500}
             />
           ) : (
             <div className="text-center text-gray-400">

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePublicClient } from 'wagmi';
 import { contractAddress } from '@/lib/contract';
@@ -50,15 +51,6 @@ export default function LatestMints() {
         // Get the latest 5 mints
         const latestLogs = logs.slice(-5).reverse();
 
-        const mintsData = latestLogs.map((log) => {
-          const { to: minter, tokenId } = log.args;
-          return {
-            minter: minter as `0x${string}`,
-            tokenId: Number(tokenId),
-            imageUrl: '', // Placeholder, as the contract doesn't support fetching images this way
-          };
-        });
-
         setMints(mintsData);
       } catch (error) {
         console.error('Error fetching latest mints:', error);
@@ -100,7 +92,13 @@ export default function LatestMints() {
                 rel="noopener noreferrer"
                 className="mint-item"
               >
-                <img src={mint.imageUrl} alt={`Token #${mint.tokenId}`} className="mint-image" />
+                <Image
+                  src={mint.imageUrl}
+                  alt={`Token #${mint.tokenId}`}
+                  width={100}
+                  height={100}
+                  className="mint-image"
+                />
               </a>
             ))
           )}
