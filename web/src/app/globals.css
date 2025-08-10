@@ -24,3 +24,56 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.latest-mints-container {
+  width: 100%;
+  max-width: 6xl;
+  margin: 0 auto;
+  padding: 1rem;
+  color: white;
+}
+
+.latest-mints-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1f2937;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.toggle-button {
+  background-color: #f97316;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+
+.latest-mints-gallery {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #374151;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.mint-item {
+  display: block;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  transition: border-color 0.2s;
+}
+
+.mint-item:hover {
+  border-color: #f97316;
+}
+
+.mint-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 0.5rem;
+}
