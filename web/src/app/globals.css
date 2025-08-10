@@ -37,18 +37,28 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #1f2937;
   padding: 1rem;
   border-radius: 0.5rem;
+  background-color: transparent;
+}
+
+.open .latest-mints-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .toggle-button {
-  background-color: #f97316;
+  background-color: #4b5563;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toggle-button:hover {
+  background-color: #6b7280;
 }
 
 .latest-mints-gallery {
@@ -56,20 +66,21 @@ body {
   gap: 1rem;
   padding: 1rem;
   background-color: #374151;
-  border-radius: 0.5rem;
-  margin-top: 1rem;
-  overflow-x: auto;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  overflow: visible;
 }
 
 .mint-item {
+  position: relative;
   display: block;
-  border: 2px solid transparent;
   border-radius: 0.5rem;
-  transition: border-color 0.2s;
+  transition: transform 0.3s ease-in-out;
 }
 
 .mint-item:hover {
-  border-color: #f97316;
+  transform: scale(2);
+  z-index: 10;
 }
 
 .mint-image {

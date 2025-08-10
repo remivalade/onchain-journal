@@ -100,7 +100,7 @@ export default function LatestMints() {
   }
 
   return (
-    <div className="latest-mints-container">
+    <div className={`latest-mints-container ${isOpen ? 'open' : ''}`}>
       <div className="latest-mints-header">
         {mints.length > 0 && (
           <p>
@@ -108,7 +108,7 @@ export default function LatestMints() {
           </p>
         )}
         <button onClick={() => setIsOpen(!isOpen)} className="toggle-button">
-          {isOpen ? 'Hide' : 'Show'}
+          {isOpen ? 'close' : 'discover the latest mints'}
         </button>
       </div>
       {isOpen && (
