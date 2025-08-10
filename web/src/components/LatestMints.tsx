@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePublicClient } from 'wagmi';
 import { contractAddress, contractAbi } from '@/lib/contract';
@@ -50,12 +51,15 @@ export default function LatestMints() {
         // Get the latest 5 mints
         const latestLogs = logs.slice(-5).reverse();
 
-        const mintsData = await Promise.all(
-          latestLogs.map(async (log) => {
+        const mintsDataPromises = latestLogs.map(async (log) => {
             const { to: minter, tokenId } = log.args;
 
+            if (tokenId === undefined) {
+              return null;
+            }
+
             // Fetch the tokenURI to get the image
-            const tokenURI: any = await publicClient.readContract({
+            const tokenURI = await publicClient.readContract({
                 address: contractAddress,
                 abi: contractAbi,
                 functionName: 'tokenURI',
@@ -72,8 +76,10 @@ export default function LatestMints() {
               tokenId: Number(tokenId),
               imageUrl: imageUrl,
             };
-          })
-        );
+        });
+
+        const settledMintsData = await Promise.all(mintsDataPromises);
+        const mintsData = settledMintsData.filter((mint) => mint !== null) as MintEvent[];
 
         setMints(mintsData);
       } catch (error) {
@@ -116,7 +122,13 @@ export default function LatestMints() {
                 rel="noopener noreferrer"
                 className="mint-item"
               >
-                <img src={mint.imageUrl} alt={`Token #${mint.tokenId}`} className="mint-image" />
+                <Image
+                  src={mint.imageUrl}
+                  alt={`Token #${mint.tokenId}`}
+                  width={100}
+                  height={100}
+                  className="mint-image"
+                />
               </a>
             ))
           )}
