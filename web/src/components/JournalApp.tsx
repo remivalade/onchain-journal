@@ -6,6 +6,7 @@ import { useAccount, useWriteContract } from 'wagmi';
 import { bob } from '@/lib/chains';
 import { contractAddress, contractAbi } from '@/lib/contract';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import LatestMints from './LatestMints';
 
 const EMOJIS = [
   { e: '😊', t: 'Happy' },
@@ -60,8 +61,10 @@ const generateSVG = (text: string, mood: string) => {
 };
 
 export default function JournalApp() {
-  const [mood, setMood] = useState(EMOJIS[0].e);
-  const [text, setText] = useState('');
+  const [mood, setMood] = useState('😭');
+  const [text, setText] = useState(
+    "Dear journal, I'm so happy to finally mint my deepest thoughts on-chain",
+  );
 
   // Wagmi hooks for wallet connection and network switching
   const { isConnected, chainId } = useAccount();
@@ -197,21 +200,21 @@ export default function JournalApp() {
       <div className="flex flex-col items-center">
         <h2 className="text-2xl font-bold mb-4">Live NFT Preview</h2>
         <div className="w-full max-w-[500px] aspect-square bg-gray-700 border-2 border-gray-600 rounded-lg overflow-hidden flex items-center justify-center">
-          {isFormEnabled ? (
-            <Image
-              src={`data:image/svg+xml;base64,${btoa(
-                unescape(encodeURIComponent(generateSVG(text, mood))),
-              )}`}
-              alt="NFT Preview"
-              width={500}
-              height={500}
-            />
-          ) : (
-            <div className="text-center text-gray-400">
-              <p>Connect your wallet and write an entry to see the preview.</p>
-            </div>
-          )}
+          <Image
+            src={`data:image/svg+xml;base64,${btoa(
+              unescape(encodeURIComponent(generateSVG(text, mood))),
+            )}`}
+            alt="NFT Preview"
+            width={500}
+            height={500}
+          />
         </div>
+      </div>
+
+      {/* ▸ Bottom pane */}
+      <div className="lg:col-span-2 mt-10">
+        <hr className="border-gray-700" />
+        <LatestMints />
       </div>
     </div>
   );
